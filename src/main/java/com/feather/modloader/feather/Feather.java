@@ -2,6 +2,7 @@ package com.feather.modloader.feather;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -23,6 +24,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -55,9 +58,7 @@ public class Feather {
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered
-        ITEMS.register(modEventBus);
-
-        // Register ourselves for server and other game events we are interested in
+        ITEMS.register(modEventBus);// Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -65,6 +66,33 @@ public class Feather {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
         LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
+        File folder = new File("mods");
+        FilenameFilter filter = (folder1, name) -> name.endsWith(".json");
+        File[] files = folder.listFiles(filter);
+        assert files != null;
+        for (File file : files) {
+            Scanner myReader;
+            try {
+                myReader = new Scanner(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                String jsonFile = myReader.nextLine();
+                JSONObject obj = new JSONObject(jsonFile);
+                try {
+                    String name = obj.getJSONObject("minecraft:item").getString("name");
+                    String mod_id = obj.getJSONObject("minecraft:item").getString("mod_id");
+                    String category = obj.getJSONObject("minecraft:item").getString("category");
+                    String rarity = obj.getJSONObject("minecraft:item").getString("rarity");
+                    int maxCount = obj.getJSONObject("minecraft:item").getInt("max_count");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
